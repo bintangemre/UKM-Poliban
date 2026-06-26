@@ -1,0 +1,208 @@
+====================================================================
+            DOKUMENTASI APLIKASI PENGELOLAAN ANGGOTA UKM POLIBAN
+====================================================================
+
+                  Politeknik Negeri Banjarmasin
+====================================================================
+
+1. GAMBARAN UMUM
+====================================================================
+
+Aplikasi Pengelolaan Anggota UKM (Unit Kegiatan Mahasiswa) POLIBAN
+adalah sistem berbasis web untuk mengelola data UKM, mahasiswa, dan
+anggotanya. Dibangun menggunakan Laravel 12 + Filament v5.6.
+
+2. STACK TEKNOLOGI
+====================================================================
+
+- Framework   : Laravel 12 (PHP ^8.2)
+- Admin Panel : Filament v5.6
+- Database    : MySQL (via Laragon)
+- Frontend    : Tailwind CSS v4 + Vite
+- CSS         : Tailwind CSS v4
+
+3. STRUKTUR DATABASE
+====================================================================
+
+TABEL: users
+  - id (PK)
+  - name
+  - email (unique)
+  - password
+  - role (enum: admin, wadir3, kabag_akademik, ketua_ukm, sekretaris_ukm)
+  - u_k_m_id (FK -> u_k_m_s.id, nullable)
+  - remember_token
+  - timestamps
+
+TABEL: mahasiswas
+  - id (PK)
+  - nim (unique)
+  - nama
+  - email (unique, nullable)
+  - nomor_telepon (nullable)
+  - alamat (nullable)
+  - jenis_kelamin (enum: Laki-laki, Perempuan, nullable)
+  - prodi (nullable)
+  - semester (nullable)
+  - timestamps
+
+TABEL: u_k_m_s
+  - id (PK)
+  - nama (unique)
+  - deskripsi (nullable)
+  - ketua_nama (nullable)
+  - ketua_nim (nullable)
+  - sekretaris_nama (nullable)
+  - sekretaris_nim (nullable)
+  - nomor_telepon (nullable)
+  - email (unique, nullable)
+  - lokasi (nullable)
+  - status (enum: Aktif, Nonaktif, default: Aktif)
+  - timestamps
+
+TABEL: anggota_u_k_m_s
+  - id (PK)
+  - mahasiswa_id (FK -> mahasiswas.id, unique, cascade)
+  - u_k_m_id (FK -> u_k_m_s.id, cascade)
+  - posisi (enum: Ketua, Sekretaris, Bendahara, Anggota, default: Anggota)
+  - tugas (nullable)
+  - tanggal_bergabung (date, nullable)
+  - status (enum: Aktif, Nonaktif, default: Aktif)
+  - timestamps
+  - UNIQUE(mahasiswa_id) [1 mahasiswa hanya 1 UKM]
+
+TABEL: exports (dari Filament)
+  - id (PK)
+  - user_id (FK)
+  - exporter
+  - total_rows
+  - file_disk
+  - file_name (nullable)
+  - completed_at (nullable)
+  - timestamps
+
+TABEL: imports (dari Filament)
+TABEL: failed_import_rows (dari Filament)
+TABEL: cache
+TABEL: jobs
+TABEL: password_reset_tokens
+TABEL: sessions
+
+4. MODEL (app/Models/)
+====================================================================
+
+User:
+  - $fillable: name, email, password, role, u_k_m_id
+  - $hidden: password, remember_token
+  - $casts: email_verified_at (datetime), password (hashed)
+  - Relations: ukm() (BelongsTo UKM)
+  - Helper methods:
+    * isAdmin(), isWadir3(), isKabagAkademik()
+    * isKetuaUKM(), isSekretarisUKM()
+    * canManageMahasiswaDanUKM() -> admin, wadir3, kabag_akademik
+    * canManagePendaftaran() -> admin, ketua_ukm, sekretaris_ukm
+
+Mahasiswa:
+  - Relations: anggotaUkm() (HasOne AnggotaUKM)
+
+UKM:
+  - $table: u_k_m_s
+  - Relations: anggotaUkms() (HasMany AnggotaUKM)
+
+AnggotaUKM:
+  - $table: anggota_u_k_m_s
+  - $casts: tanggal_bergabung (date)
+  - Relations: mahasiswa() (BelongsTo Mahasiswa), ukm() (BelongsTo UKM)
+
+5. FILAMENT RESOURCES (app/Filament/Resources/)
+====================================================================
+
+A. MahasiswaResource
+   - Navigation: "Mahasiswa" (sort: 1)
+   - Akses: admin, wadir3, kabag_akademik
+   - Fitur: Create, Read, Update, Delete, Search, Filter (prodi)
+   - Export: MahasiswaExporter
+   - Cetak: route('print.mahasiswa')
+
+B. UKMResource
+   - Navigation: "Unit Kegiatan Mahasiswa" (sort: 2)
+   - Akses: admin, wadir3, kabag_akademik
+   - Fitur: Create, Read, Update, Delete, Search, Filter (status)
+   - Export: UKMExporter
+   - Cetak: route('print.ukm')
+
+C. AnggotaUKMResource
+   - Navigation: "Anggota UKM" (sort: 3)
+   - Akses: admin, ketua_ukm, sekretaris_ukm
+   - Fitur: Read, Update, Delete (tanpa Create), Search, Filter
+   - Scoping: ketua/sekretaris hanya lihat anggota UKM-nya sendiri
+   - Export: AnggotaUKMExporter
+   - Cetak: route('print.anggota')
+
+D. PendaftaranResource
+   - Navigation: "Pendaftaran Anggota" (sort: 4)
+   - Akses: admin, ketua_ukm, sekretaris_ukm
+   - Fitur: Create doang (form pendaftaran)
+   - UKM otomatis terisi & read-only untuk ketua/sekretaris
+   - Redirect ke AnggotaUKM setelah sukses
+
+6. EXPORTER (app/Filament/Exports/)
+====================================================================
+
+- MahasiswaExporter -> export data mahasiswa ke Excel
+- UKMExporter -> export data UKM ke Excel
+- AnggotaUKMExporter -> export data anggota UKM ke Excel
+
+7. CETAK (Print)
+====================================================================
+
+Controller: app/Http/Controllers/Print/PrintController.php
+Routes (prefix: /print, middleware: auth):
+  - /print/mahasiswa       -> cetak data mahasiswa
+  - /print/ukm             -> cetak data UKM
+  - /print/anggota         -> cetak data anggota UKM
+
+Views: resources/views/print/
+  - mahasiswa.blade.php
+  - ukm.blade.php
+  - anggota.blade.php
+
+8. ROUTES
+====================================================================
+
+File: routes/web.php
+  - GET / -> welcome page
+  - GET /print/mahasiswa -> PrintController@mahasiswa (auth)
+  - GET /print/ukm -> PrintController@ukm (auth)
+  - GET /print/anggota -> PrintController@anggota (auth)
+  - GET /print/anggota/ukm/{ukm} -> PrintController@anggotaByUKM (auth)
+
+File: routes/console.php (console commands)
+
+Admin Panel: /admin (via Filament AdminPanelProvider)
+
+9. ROLE & AKSES
+====================================================================
+
+admin       -> Full akses (Mahasiswa, UKM, Pendaftaran, AnggotaUKM)
+wadir3      -> Mahasiswa, UKM
+kabag_akademik -> Mahasiswa, UKM
+ketua_ukm   -> Pendaftaran, AnggotaUKM (hanya UKM-nya sendiri)
+sekretaris_ukm -> Pendaftaran, AnggotaUKM (hanya UKM-nya sendiri)
+
+10. SEEDER
+====================================================================
+
+Urutan: MahasiswaSeeder -> UKMSeeder -> UserSeeder -> AnggotaUKMSeeder
+
+- 8 mahasiswa (data dummy)
+- 4 UKM (Futsal, Debat, Fotografi, Coding Club)
+- 8 user dengan role berbeda (password: password)
+- 8 anggota UKM (masing-masing UKM punya anggota)
+
+11. KONFIGURASI FILE
+====================================================================
+
+.env        -> konfigurasi database, app, queue, dll
+phpunit.xml -> testing dengan SQLite in-memory
+.editorconfig -> indent 4 spasi, LF

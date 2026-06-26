@@ -1,0 +1,254 @@
+====================================================================
+            MANUAL BOOK APLIKASI PENGELOLAAN ANGGOTA UKM POLIBAN
+====================================================================
+
+                  Politeknik Negeri Banjarmasin
+====================================================================
+
+DAFTAR ISI
+====================================================================
+1. Cara Menjalankan Aplikasi
+2. Login
+3. Dashboard
+4. Menu Mahasiswa
+5. Menu Unit Kegiatan Mahasiswa
+6. Menu Pendaftaran Anggota
+7. Menu Anggota UKM
+8. Fitur Export Excel
+9. Fitur Cetak Data
+10. Akun Pengguna
+
+====================================================================
+1. CARA MENJALANKAN APLIKASI
+====================================================================
+
+Prasyarat:
+  - PHP ^8.2
+  - Composer
+  - Node.js + NPM
+  - MySQL (via Laragon / XAMPP)
+  - Git
+
+Langkah-langkah:
+
+  A. Clone / Copy project ke folder local server
+     (contoh: C:/laragon/www/Testing)
+
+  B. Buka terminal di folder project
+
+  C. Install dependencies:
+     > composer install
+     > npm install
+
+  D. Copy .env lalu generate key:
+     > copy .env.example .env
+     > php artisan key:generate
+
+  E. Buat database MySQL (contoh: ukm_poliban)
+
+  F. Jalankan migrasi & seeder:
+     > php artisan migrate:fresh --seed
+
+  G. Jalankan server:
+     > php artisan serve
+
+  H. (Opsional) Jalankan Vite untuk development:
+     > npm run dev
+
+  I. Buka browser:
+     http://127.0.0.1:8000/admin
+
+====================================================================
+2. LOGIN
+====================================================================
+
+1. Buka http://127.0.0.1:8000/admin
+2. Masukkan email dan password
+3. Klik tombol "Login"
+
+Setelah login, menu yang tampil akan disesuaikan dengan role masing-masing.
+
+====================================================================
+3. DASHBOARD
+====================================================================
+
+Setelah login, halaman Dashboard akan menampilkan:
+- Widget akun (informasi user login)
+- Informasi umum Filament
+
+====================================================================
+4. MENU MAHASISWA
+====================================================================
+
+Akses: Admin, Wakil Direktur III, Kepala Bagian Akademik
+
+Menu ini digunakan untuk mengelola data mahasiswa.
+
+Fitur:
+  A. Melihat Data Mahasiswa
+     - Tabel menampilkan NIM, Nama, Email, No. Telepon, Prodi, Semester
+     - Pencarian data (search) di kolom NIM, Nama, Email, No. Telepon, Prodi, Semester
+
+  B. Menambah Mahasiswa Baru
+     - Klik tombol "Create" atau "Tambah" di kanan atas
+     - Isi form: NIM (wajib, unique), Nama (wajib), Email, No. Telepon,
+       Jenis Kelamin, Program Studi, Semester, Alamat
+     - Klik "Save" untuk menyimpan
+
+  C. Mengubah Data Mahasiswa
+     - Klik ikon edit (pensil) pada baris yang ingin diubah
+     - Ubah data yang diperlukan
+     - Klik "Save"
+
+  D. Menghapus Data Mahasiswa
+     - Klik ikon delete (tong sampah) pada baris yang ingin dihapus
+     - Konfirmasi penghapusan
+
+  E. Filter Data
+     - Filter berdasarkan Program Studi (TI, TKJ, PPLG)
+
+  F. Export Excel
+     - Klik tombol "Export Excel"
+     - File akan otomatis terdownload
+
+  G. Cetak Data
+     - Klik tombol "Cetak Data"
+     - Halaman print akan terbuka di tab baru
+     - Klik CTRL+P atau tombol Cetak di halaman
+
+====================================================================
+5. MENU UNIT KEGIATAN MAHASISWA
+====================================================================
+
+Akses: Admin, Wakil Direktur III, Kepala Bagian Akademik
+
+Menu ini digunakan untuk mengelola data UKM.
+
+Fitur:
+  A. Melihat Data UKM
+     - Tabel menampilkan Nama UKM, Ketua, Sekretaris, Email, No. Telepon, Status
+     - Pencarian data (search)
+
+  B. Menambah UKM Baru
+     - Klik tombol "Create"
+     - Isi form: Nama UKM (wajib), Deskripsi, Email UKM, No. Telepon,
+       Lokasi/Basecamp, Nama Ketua, NIM Ketua, Nama Sekretaris, NIM Sekretaris,
+       Status (Aktif/Nonaktif)
+     - Klik "Save"
+
+  C. Mengubah Data UKM
+     - Klik ikon edit (pensil)
+     - Ubah data
+     - Klik "Save"
+
+  D. Menghapus Data UKM
+     - Klik ikon delete (tong sampah)
+     - Konfirmasi
+
+  E. Filter berdasarkan Status (Aktif/Nonaktif)
+
+  F. Export Excel & Cetak
+
+====================================================================
+6. MENU PENDAFTARAN ANGGOTA
+====================================================================
+
+Akses: Admin, Ketua UKM, Sekretaris UKM
+
+Menu ini untuk mendaftarkan mahasiswa sebagai anggota UKM.
+
+Cara Mendaftarkan Anggota Baru:
+  1. Klik menu "Pendaftaran Anggota"
+  2. Isi form pendaftaran:
+     - Mahasiswa: pilih dari dropdown (search by nama/NIM)
+     - UKM: otomatis terisi untuk ketua/sekretaris UKM
+     - Posisi: pilih posisi (Ketua, Sekretaris, Bendahara, Anggota)
+     - Tanggal Bergabung: default hari ini
+     - Tugas: deskripsi tugas (opsional)
+  3. Klik "Save"
+  4. Setelah berhasil, otomatis redirect ke halaman Anggota UKM
+
+Catatan:
+  - Satu mahasiswa hanya boleh terdaftar di satu UKM
+  - Jika mahasiswa sudah terdaftar, akan muncul error
+
+====================================================================
+7. MENU ANGGOTA UKM
+====================================================================
+
+Akses: Admin, Ketua UKM, Sekretaris UKM
+
+Menu ini untuk melihat dan mengelola data anggota UKM.
+
+Fitur:
+  A. Melihat Data Anggota
+     - Tabel menampilkan Nama Mahasiswa, NIM, UKM, Posisi, Tgl Bergabung, Status
+     - Ketua/sekretaris hanya melihat anggota UKM-nya sendiri
+     - Admin melihat semua anggota
+
+  B. Mengubah Data Anggota
+     - Klik ikon edit (pensil)
+     - Ubah data posisi, tugas, status, dll
+     - Klik "Save"
+
+  C. Menghapus Anggota
+     - Klik ikon delete (tong sampah)
+     - Konfirmasi
+
+  D. Filter: UKM, Posisi, Status
+
+  E. Export Excel & Cetak
+
+====================================================================
+8. FITUR EXPORT EXCEL
+====================================================================
+
+Tersedia di halaman:
+  - Mahasiswa
+  - Unit Kegiatan Mahasiswa
+  - Pendaftaran Anggota
+  - Anggota UKM
+
+Cara:
+  1. Klik tombol "Export Excel"
+  2. Tunggu notifikasi selesai
+  3. Klik link download pada notifikasi
+
+Catatan: Pastikan QUEUE_CONNECTION=sync di .env agar export
+berlangsung langsung tanpa antrian.
+
+====================================================================
+9. FITUR CETAK DATA
+====================================================================
+
+Tersedia di halaman:
+  - Mahasiswa -> cetak semua data mahasiswa
+  - Unit Kegiatan Mahasiswa -> cetak semua data UKM
+  - Pendaftaran Anggota -> cetak data anggota
+  - Anggota UKM -> cetak data anggota
+
+Cara:
+  1. Klik tombol "Cetak Data"
+  2. Halaman print-friendly terbuka di tab baru
+  3. Klik tombol "Cetak" atau CTRL+P
+
+====================================================================
+10. AKUN PENGGUNA
+====================================================================
+
+Semua password: "password"
+
+  No | Email                         | Role             | Akses
+  ---+-------------------------------+---------------+-----------------------
+  1  | admin@poliban.com             | Admin           | Semua fitur
+  2  | wadir3@poliban.com            | Wakil Direktur 3| Mahasiswa & UKM
+  3  | kabag@poliban.com             | Kabag Akademik  | Mahasiswa & UKM
+  4  | ketua.futsal@poliban.com      | Ketua UKM Futsal| Pendaftaran & Anggota
+  5  | sekretaris.futsal@poliban.com | Sekretaris Futsal| Pendaftaran & Anggota
+  6  | ketua.debat@poliban.com       | Ketua UKM Debat | Pendaftaran & Anggota
+  7  | ketua.fotografi@poliban.com   | Ketua Fotografi | Pendaftaran & Anggota
+  8  | ketua.coding@poliban.com      | Ketua Coding    | Pendaftaran & Anggota
+
+====================================================================
+                    - END OF DOCUMENT -
+====================================================================
